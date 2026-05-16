@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Expense Tracker</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="funn.css">
+
+<base target="_blank">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <i class="fas fa-wallet"></i>
+                Personal Expense Tracker
+            </div>
+            <ul class="nav-links">
+                <li><a href="#dashboard"><i class="fas fa-home"></i> Dashboard</a></li>
+                <li><a href="#expenses"><i class="fas fa-list"></i> Expenses</a></li>
+                <li><a href="#reports"><i class="fas fa-chart-pie"></i> Reports</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Alert Messages -->
+        <div id="lowBalanceAlert" class="alert alert-danger">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span>Warning: Your account balance is below ₹500!</span>
+        </div>
+
+        <div id="successAlert" class="alert alert-success">
+            <i class="fas fa-check-circle"></i>
+            <span id="successMessage">Operation completed successfully!</span>
+        </div>
+
+        <!-- Dashboard Cards -->
+        <section id="dashboard">
+            <div class="dashboard-grid">
+                <div class="card card-balance">
+                    <div class="card-icon">
+                        <i class="fas fa-wallet"></i>
+                    </div>
+                    <div class="card-label">Total Balance</div>
+                    <div class="card-value" id="totalBalance">₹0</div>
+                    <div class="progress-container">
+                        <div class="progress-label">
+                            <span>Balance Usage</span>
+                            <span id="usagePercent">0%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card card-expenses">
+                    <div class="card-icon">
+                        <i class="fas fa-arrow-down"></i>
+                    </div>
+                    <div class="card-label">Total Expenses</div>
+                    <div class="card-value" id="totalExpenses">₹0</div>
+                </div>
+
+                <div class="card card-remaining">
+                    <div class="card-icon">
+                        <i class="fas fa-piggy-bank"></i>
+                    </div>
+                    <div class="card-label">Remaining Balance</div>
+                    <div class="card-value" id="remainingBalance">₹0</div>
+                </div>
+
+                <div class="card card-savings">
+                    <div class="card-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="card-label">Today's Expenses</div>
+                    <div class="card-value" id="todayExpenses">₹0</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Initial Balance Setup -->
+        <section id="setup" class="section">
+            <h2 class="section-title">
+                <i class="fas fa-cog"></i>
+                Account Setup
+            </h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="initialBalance">Set Initial Balance (₹)</label>
+                    <input type="number" id="initialBalance" class="form-control" placeholder="Enter amount (e.g., 5000)">
+                </div>
+                <div class="form-group">
+                    <label>&nbsp;</label>
+                    <button class="btn btn-primary" onclick="setInitialBalance()">
+                        <i class="fas fa-save"></i> Set Balance
+                    </button>
+                </div>
+                <div class="form-group">
+                    <label for="addMoney">Add Money (₹)</label>
+                    <input type="number" id="addMoney" class="form-control" placeholder="Enter amount to add">
+                </div>
+                <div class="form-group">
+                    <label>&nbsp;</label>
+                    <button class="btn btn-success" onclick="addMoney()">
+                        <i class="fas fa-plus"></i> Add Money
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Add Expense Form -->
+        <section id="expenses" class="section">
+            <h2 class="section-title">
+                <i class="fas fa-plus-circle"></i>
+                Add New Expense
+            </h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="expenseAmount">Amount (₹)</label>
+                    <input type="number" id="expenseAmount" class="form-control" placeholder="Enter amount">
+                </div>
+                <div class="form-group">
+                    <label for="expenseCategory">Category</label>
+                    <select id="expenseCategory" class="form-control">
+                        <option value="">Select Category</option>
+                        <option value="Food">Food</option>
+                        <option value="Transport">Transport</option>
+                        <option value="Education">Education</option>
+                        <option value="Shopping">Shopping</option>
+                        <option value="Recharge">Recharge</option>
+                        <option value="Entertainment">Entertainment</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="expenseDate">Date</label>
+                    <input type="date" id="expenseDate" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="expenseDescription">Description</label>
+                    <input type="text" id="expenseDescription" class="form-control" placeholder="Enter description">
+                </div>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="addExpense()">
+                    <i class="fas fa-plus"></i> Add Expense
+                </button>
+                <button class="btn btn-secondary" onclick="resetExpenseForm()">
+                    <i class="fas fa-undo"></i> Reset
+                </button>
+            </div>
+        </section>
+
+        <!-- Expense History Table -->
+        <section class="section">
+            <h2 class="section-title">
+                <i class="fas fa-history"></i>
+                Expense History
+            </h2>
+            <div class="table-container">
+                <table id="expenseTable">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Category</th>
+                            <th>Description</th>
+                            <th>Amount</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="expenseTableBody">
+                        <tr class="empty-state">
+                            <td colspan="5">
+                                <div class="empty-state">
+                                    <i class="fas fa-receipt"></i>
+                                    <p>No expenses recorded yet. Start by adding your first expense!</p>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Charts Section -->
+        <section id="reports" class="section">
+            <h2 class="section-title">
+                <i class="fas fa-chart-bar"></i>
+                Reports & Analytics
+            </h2>
+            <div class="charts-grid">
+                <div class="chart-wrapper">
+                    <h3 class="text-center mb-2">Category-wise Spending</h3>
+                    <div class="chart-container">
+                        <canvas id="pieChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-wrapper">
+                    <h3 class="text-center mb-2">Monthly Expenses</h3>
+                    <div class="chart-container">
+                        <canvas id="barChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // ==================== DATA MANAGEMENT ====================
+        let totalBalance = 0;
+        let expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+
+        // Initialize date input with today's date
+        document.getElementById('expenseDate').valueAsDate = new Date();
+
+        // ==================== CORE FUNCTIONS ====================
+
+        function setInitialBalance() {
+            const amount = parseFloat(document.getElementById('initialBalance').value);
+            if (isNaN(amount) || amount <= 0) {
+                showAlert('Please enter a valid amount', 'danger');
+                return;
+            }
+            totalBalance = amount;
+            localStorage.setItem('totalBalance', totalBalance);
+            updateDashboard();
+            showAlert('Initial balance set successfully!', 'success');
+            document.getElementById('initialBalance').value = '';
+        }
+
+        function addMoney() {
+            const amount = parseFloat(document.getElementById('addMoney').value);
+            if (isNaN(amount) || amount <= 0) {
+                showAlert('Please enter a valid amount', 'danger');
+                return;
+            }
+            if (totalBalance === 0) {
+                showAlert('Please set initial balance first', 'danger');
+                return;
+            }
+            totalBalance += amount;
+            localStorage.setItem('totalBalance', totalBalance);
+            updateDashboard();
+            showAlert(`₹${amount} added to your balance!`, 'success');
+            document.getElementById('addMoney').value = '';
+        }
+
+        function addExpense() {
+            const amount = parseFloat(document.getElementById('expenseAmount').value);
+            const category = document.getElementById('expenseCategory').value;
+            const date = document.getElementById('expenseDate').value;
+            const description = document.getElementById('expenseDescription').value;
+
+            if (isNaN(amount) || amount <= 0) {
+                showAlert('Please enter a valid amount', 'danger');
+                return;
+            }
+            if (!category) {
+                showAlert('Please select a category', 'danger');
+                return;
+            }
+            if (!date) {
+                showAlert('Please select a date', 'danger');
+                return;
+            }
+            if (totalBalance === 0) {
+                showAlert('Please set initial balance first', 'danger');
+                return;
+            }
+
+            const totalExpenses = expenses.reduce((sum, exp) => sum + exp.amount, 0);
+            if (totalExpenses + amount > totalBalance) {
+                showAlert('Insufficient balance for this expense!', 'danger');
+                return;
+            }
+
+            const expense = {
+                id: Date.now(),
+                amount: amount,
+                category: category,
+                date: date,
+                description: description || '-',
+                timestamp: new Date().toISOString()
+            };
+
+            expenses.push(expense);
+            saveExpenses();
+            updateDashboard();
+            renderExpenseTable();
+            updateCharts();
+            resetExpenseForm();
+            showAlert('Expense added successfully!', 'success');
+        }
+
+        function deleteExpense(id) {
+            if (confirm('Are you sure you want to delete this expense?')) {
+                expenses = expenses.filter(exp => exp.id !== id);
+                saveExpenses();
+                updateDashboard();
+                renderExpenseTable();
+                updateCharts();
+                showAlert('Expense deleted successfully!', 'success');
+            }
+        }
+
+        function resetExpenseForm() {
+            document.getElementById('expenseAmount').value = '';
+            document.getElementById('expenseCategory').value = '';
+            document.getElementById('expenseDate').valueAsDate = new Date();
+            document.getElementById('expenseDescription').value = '';
+        }
+
+        // ==================== DASHBOARD UPDATES ====================
+
+        function updateDashboard() {
+            const totalExpenses = expenses.reduce((sum, exp) => sum + exp.amount, 0);
+            const remaining = totalBalance - totalExpenses;
+
+            // Today's expenses
+            const today = new Date().toISOString().split('T')[0];
+            const todayExpenses = expenses
+                .filter(exp => exp.date === today)
+                .reduce((sum, exp) => sum + exp.amount, 0);
+
+            // Update display
+            document.getElementById('totalBalance').textContent = formatCurrency(totalBalance);
+            document.getElementById('totalExpenses').textContent = formatCurrency(totalExpenses);
+            document.getElementById('remainingBalance').textContent = formatCurrency(remaining);
+            document.getElementById('todayExpenses').textContent = formatCurrency(todayExpenses);
+
+            // Update progress bar
+            const usagePercent = totalBalance > 0 ? (totalExpenses / totalBalance) * 100 : 0;
+            document.getElementById('usagePercent').textContent = usagePercent.toFixed(1) + '%';
+            document.getElementById('progressFill').style.width = usagePercent + '%';
+
+            if (usagePercent > 80) {
+                document.getElementById('progressFill').classList.add('warning');
+            } else {
+                document.getElementById('progressFill').classList.remove('warning');
+            }
+
+            // Low balance alert
+            const alertDiv = document.getElementById('lowBalanceAlert');
+            if (remaining < 500 && totalBalance > 0) {
+                alertDiv.style.display = 'flex';
+            } else {
+                alertDiv.style.display = 'none';
+            }
+        }
+
+        function renderExpenseTable() {
+            const tbody = document.getElementById('expenseTableBody');
+
+            if (expenses.length === 0) {
+                tbody.innerHTML = `
+                    <tr class="empty-state">
+                        <td colspan="5">
+                            <div class="empty-state">
+                                <i class="fas fa-receipt"></i>
+                                <p>No expenses recorded yet. Start by adding your first expense!</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            // Sort by date (newest first)
+            const sortedExpenses = [...expenses].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            tbody.innerHTML = sortedExpenses.map(expense => `
+                <tr>
+                    <td>${formatDate(expense.date)}</td>
+                    <td><span class="category-badge badge-${expense.category.toLowerCase()}">${expense.category}</span></td>
+                    <td>${expense.description}</td>
+                    <td style="color: var(--danger-red); font-weight: 600;">-₹${expense.amount}</td>
+                    <td>
+                        <button class="delete-btn" onclick="deleteExpense(${expense.id})" title="Delete">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // ==================== CHARTS ====================
+
+        let pieChartInstance = null;
+        let barChartInstance = null;
+
+        function updateCharts() {
+            updatePieChart();
+            updateBarChart();
+        }
+
+        function updatePieChart() {
+            const ctx = document.getElementById('pieChart').getContext('2d');
+
+            // Calculate category totals
+            const categoryTotals = {};
+            expenses.forEach(exp => {
+                categoryTotals[exp.category] = (categoryTotals[exp.category] || 0) + exp.amount;
+            });
+
+            const data = Object.values(categoryTotals);
+            const labels = Object.keys(categoryTotals);
+
+            if (data.length === 0) {
+                if (pieChartInstance) pieChartInstance.destroy();
+                return;
+            }
+
+            const colors = ['#f59e0b', '#2563eb', '#8b5cf6', '#ec4899', '#0ea5e9', '#f97316'];
+
+            if (pieChartInstance) pieChartInstance.destroy();
+
+            pieChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: colors.slice(0, labels.length),
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                font: { family: 'Poppins', size: 12 }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateBarChart() {
+            const ctx = document.getElementById('barChart').getContext('2d');
+
+            // Group by month
+            const monthlyTotals = {};
+            expenses.forEach(exp => {
+                const month = exp.date.substring(0, 7); // YYYY-MM
+                monthlyTotals[month] = (monthlyTotals[month] || 0) + exp.amount;
+            });
+
+            const sortedMonths = Object.keys(monthlyTotals).sort();
+            const data = sortedMonths.map(month => monthlyTotals[month]);
+            const labels = sortedMonths.map(month => {
+                const [year, monthNum] = month.split('-');
+                return `${monthNum}/${year}`;
+            });
+
+            if (data.length === 0) {
+                if (barChartInstance) barChartInstance.destroy();
+                return;
+            }
+
+            if (barChartInstance) barChartInstance.destroy();
+
+            barChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Monthly Expenses (₹)',
+                        data: data,
+                        backgroundColor: '#2563eb',
+                        borderRadius: 8,
+                        borderSkipped: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: '#e2e8f0' },
+                            ticks: { font: { family: 'Poppins' } }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { family: 'Poppins' } }
+                        }
+                    }
+                }
+            });
+        }
+
+        // ==================== UTILITY FUNCTIONS ====================
+
+        function formatCurrency(amount) {
+            return '₹' + amount.toLocaleString('en-IN');
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+        }
+
+        function showAlert(message, type) {
+            const alertDiv = type === 'danger' 
+                ? document.getElementById('lowBalanceAlert')
+                : document.getElementById('successAlert');
+
+            if (type === 'success') {
+                document.getElementById('successMessage').textContent = message;
+            }
+
+            alertDiv.style.display = 'flex';
+
+            setTimeout(() => {
+                alertDiv.style.display = 'none';
+            }, 3000);
+        }
+
+        function saveExpenses() {
+            localStorage.setItem('expenses', JSON.stringify(expenses));
+        }
+
+        // ==================== INITIALIZATION ====================
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load saved balance if exists
+            const savedBalance = localStorage.getItem('totalBalance');
+            if (savedBalance) {
+                totalBalance = parseFloat(savedBalance);
+            }
+
+            updateDashboard();
+            renderExpenseTable();
+            updateCharts();
+        });
+
+        // Save balance when updated
+        window.addEventListener('beforeunload', function() {
+            localStorage.setItem('totalBalance', totalBalance);
+        });
+    </script>
+</body>
+</html>
